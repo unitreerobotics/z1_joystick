@@ -18,7 +18,7 @@ UnitreeJoystick::UnitreeJoystick(DogType dog)
   }
 
   //create the connection
-  _updateThread = std::make_shared< UNITREE_ARM::LoopFunc>("readJoystick", 0.01, boost::bind(&UnitreeJoystick::_read, this));
+  _updateThread = std::make_shared< UNITREE_ARM::LoopFunc>("readJoystick", 0.001, boost::bind(&UnitreeJoystick::_read, this));
   _updateThread->start();
 }
 
@@ -44,35 +44,34 @@ void UnitreeJoystick::_read()
     memcpy(&_unitreeJoyData, &_udpStateB1.wirelessRemote[0], 40);
     break;
   }
-  _joyDataPre = _joyData;
-  _convertJoyData(_unitreeJoyData, _joyData);
+  _convertJoyData(_unitreeJoyData, joyData_);
 }
 
 void UnitreeJoystick::_convertJoyData(xRockerBtnDataStruct& unitreeJoy, JoystickDataStruct& joy)
 {
-  //btn
-  joy.btn.back  = unitreeJoy.btn.components.select;
-  joy.btn.start = unitreeJoy.btn.components.start;
-  joy.btn.LS    = 0;
-  joy.btn.RS    = 0;
-  joy.btn.LB    = unitreeJoy.btn.components.L1;
-  joy.btn.RB    = unitreeJoy.btn.components.R1;
-  joy.btn.A     = unitreeJoy.btn.components.A;
-  joy.btn.B     = unitreeJoy.btn.components.B;
-  joy.btn.X     = unitreeJoy.btn.components.X;
-  joy.btn.Y     = unitreeJoy.btn.components.Y;
-  joy.btn.up    = unitreeJoy.btn.components.up;
-  joy.btn.down  = unitreeJoy.btn.components.down;
-  joy.btn.left  = unitreeJoy.btn.components.left;
-  joy.btn.right = unitreeJoy.btn.components.right;
+  /* buttons */
+  joy.btn.back(unitreeJoy.btn.components.select);
+  joy.btn.start(unitreeJoy.btn.components.start);
+  joy.btn.LS(0);
+  joy.btn.RS(0);
+  joy.btn.LB(unitreeJoy.btn.components.L1);
+  joy.btn.RB(unitreeJoy.btn.components.R1);
+  joy.btn.A(unitreeJoy.btn.components.A);
+  joy.btn.B(unitreeJoy.btn.components.B);
+  joy.btn.X(unitreeJoy.btn.components.X);
+  joy.btn.Y(unitreeJoy.btn.components.Y);
+  joy.btn.up(unitreeJoy.btn.components.up);
+  joy.btn.down(unitreeJoy.btn.components.down);
+  joy.btn.left(unitreeJoy.btn.components.left);
+  joy.btn.right(unitreeJoy.btn.components.right);
 
-  //axes
-  joy.axes.lx = unitreeJoy.lx;
-  joy.axes.ly = unitreeJoy.ly;
-  joy.axes.rx = unitreeJoy.rx;
-  joy.axes.ry = unitreeJoy.ry;
-  joy.axes.LT = unitreeJoy.btn.components.L2;
-  joy.axes.RT = unitreeJoy.btn.components.R2;
+  /* axes */
+  joy.axes.lx(unitreeJoy.lx);
+  joy.axes.ly(unitreeJoy.ly);
+  joy.axes.rx(unitreeJoy.rx);
+  joy.axes.ry(unitreeJoy.ry);
+  joy.axes.LT(unitreeJoy.btn.components.L2);
+  joy.axes.RT(unitreeJoy.btn.components.R2);
 }
 
-}
+} // unitree_joy

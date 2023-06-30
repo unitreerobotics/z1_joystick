@@ -3,6 +3,7 @@
 ArmCtrl::ArmCtrl(std::string joyName)
 {
   _joy = std::make_shared<JoyController>(joyName);
+  std::cout << "Use joystick "<<joyName << std::endl;
   z1 = std::make_shared<unitreeArm>(true);
   _trajManager = std::make_shared<TrajectoryManager>(z1);
 
@@ -19,19 +20,21 @@ ArmCtrl::ArmCtrl(std::string joyName)
 
 
   z1->sendRecvThread->start();
-  _runThread = std::make_shared<LoopFunc>("arm_run", 0.004, boost::bind(&ArmCtrl::_run, this));
+  _runThread = std::make_shared<LoopFunc>("arm_run", 0.002, boost::bind(&ArmCtrl::_run, this));
   _runThread->start();
 }
 
 void ArmCtrl::_run()
 {
   // check real state
-  switch (_joy->getSwitchState())
+  auto targetState = _joy->getSwitchState();
+  // std::cout << (int)targetState << "\n";
+  switch (targetState)
   {
   case ArmFSMState::BACKTOSTART:
-    _currentState = ArmFSMState::BACKTOSTART;
     z1->setWait(true);
     z1->backToStart();
+    _currentState = ArmFSMState::JOINTCTRL;
     break;
   case ArmFSMState::PASSIVE:
     z1->setFsm(ArmFSMState::PASSIVE);
@@ -40,7 +43,6 @@ void ArmCtrl::_run()
   case ArmFSMState::JOINTCTRL:
   case ArmFSMState::CARTESIAN:
     _currentState = _joy->getSwitchState();
-    z1->startTrack(_joy->getSwitchState());
     z1->directions.setZero();
     break;
   case ArmFSMState::TRAJECTORY:
@@ -69,7 +71,6 @@ void ArmCtrl::_run()
       _currentState = ArmFSMState::INVALID;
     break;
   default:
-      _checkForJointCtrl();
     break;
   }
 }
@@ -80,7 +81,7 @@ void ArmCtrl::_jointCtrl()
   _jointSpeed = saturation(_jointSpeed, 0.2, 1.0);
 
   // smooth the command
-  const double filter_coe = 0.02;
+  const double filter_coe = 0.01;
   z1->directions = filter_coe* _joy->getDirections(_currentState)
      + (1-filter_coe)*z1->directions;
   z1->jointCtrlCmd(z1->directions, _jointSpeed);
@@ -89,7 +90,7 @@ void ArmCtrl::_jointCtrl()
 void ArmCtrl::_cartesianCtrl()
 {
   _cartesianSpeed += 0.05 * _joy->getSpeedAdd();
-  _cartesianSpeed = saturation(_cartesianSpeed, 0.05, 0.2);
+  _cartesianSpeed = saturation(_cartesianSpeed, 0.05, 0.4);
 
   auto new_directions = _joy->getDirections(_currentState);
   // Decrease the y-axis speed in singularity area
@@ -98,7 +99,7 @@ void ArmCtrl::_cartesianCtrl()
   }
 
   // smooth the command
-  const double filter_coe = 0.02;
+  const double filter_coe = 0.01;
   z1->directions = filter_coe* new_directions + (1-filter_coe)*z1->directions;
   z1->cartesianCtrlCmd(z1->directions, _cartesianSpeed*2, _cartesianSpeed);
 }
@@ -139,23 +140,7 @@ void ArmCtrl::_trajectory(int trajNum)
   }
 }
 
-void ArmCtrl::_checkForJointCtrl()
-{
-  if(z1->_ctrlComp->recvState.state == ArmFSMState::JOINTCTRL)
-  {
-    if(++cntJointState > 15)
-    {
-      _currentState = ArmFSMState::JOINTCTRL;
-      z1->directions.setZero();
-      cntJointState = 0;
-    }
-  }else{
-    cntJointState = 0;
-  }
-}
-
 /**         TrajectoryManager          */
-
 void TrajectoryManager::addMoveJ(Vec6 endPosture, double gripper_angle)
 {
   Vec6 qTemp;

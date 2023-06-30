@@ -53,13 +53,6 @@ private:
   void _cartesianCtrl();
   void _trajectory(int trajNum);
 
-  /**
-   * @brief If z1 stay at State_JointCtrl for a long time, then start joint control
-   * 
-   * Maybe the controller(_currentState) haven't change to ArmFSMState::JOINTCTRL as expected.
-   */
-  void _checkForJointCtrl();
-
   std::shared_ptr<unitreeArm> z1;
   std::shared_ptr<JoyController> _joy;
   std::shared_ptr<LoopFunc> _runThread;

@@ -223,7 +223,6 @@ void setWait(bool Y_N);
  */
 void jointCtrlCmd(Vec7 directions, double jointSpeed);
 
-
 /*
  * Function: set spatial velocity command automatically by input parameters
  * Input:    directions: movement directions [include gripper], range:[-1,1]

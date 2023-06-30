@@ -11,6 +11,64 @@
 
 namespace unitree_joy {
 
+class JoystickBtn 
+{
+public:
+	JoystickBtn(){};
+
+	/* Set button value */
+	void operator()(const int& val) {
+		this->dataPre_ = this->data_;
+		this->data_ = val;
+	}
+
+	/* Get button value */
+	int operator()() const {
+		return this->data_;
+	}
+
+	bool isPressed() {
+		return data_ == 1;
+	}
+	bool isJustPressed() {
+		return (dataPre_ == 0) && (data_ == 1);
+	}
+	bool isJustReleased() {
+		return (dataPre_ == 1) && (data_ == 0);
+	}
+private:
+	int data_{}, dataPre_{};
+};
+
+class JoystickAxis{
+public:
+	JoystickAxis(){}
+
+	/* Set axis value */
+	void operator()(const float& val) {
+		this->dataPre_ = this->data_;
+		this->data_ = val;
+	}
+
+	/* Get axis value */
+	float operator()() const {
+		return this->data_;
+	}
+
+	bool isPressed() {
+		return data_ > threhold_;
+	}
+	bool isJustPressed() {
+		return (dataPre_ < threhold_) && ( data_ > threhold_);
+	}
+	bool isJustReleased() {
+		return (dataPre_ > threhold_) && ( data_ < threhold_);
+	}
+private:
+	float data_{}, dataPre_{};
+	float threhold_ = 0.5; // consider an axis as a button
+};
+
 /**
  * @brief Decribes the joystick buttons.
  * 
@@ -18,28 +76,20 @@ namespace unitree_joy {
  */
 typedef struct
 {
-	uint8_t back        :1;
-	uint8_t start       :1;
-	/// Left anglog stick center pushed in
-	uint8_t LS          :1;
-	/// Right analog stick center pushed in
-	uint8_t RS          :1;
-	/// Left Bumper
-	uint8_t LB          :1;
-	/// Right Bumper
-	uint8_t RB          :1;
-	uint8_t A           :1;
-	uint8_t B           :1;
-	uint8_t X           :1;
-	uint8_t Y           :1;
-	uint8_t up          :1;
-	uint8_t down        :1;
-	uint8_t left        :1;
-	uint8_t right       :1;
-	/// reserved
-	uint8_t idle1       :1;//保留
-	/// reserved
-	uint8_t idle2       :1;
+	JoystickBtn back;
+	JoystickBtn start;
+	JoystickBtn LS; /* Left anglog stick center pushed in */
+	JoystickBtn RS; /* Right analog stick center pushed in */
+	JoystickBtn LB; /* Left Bumper */
+	JoystickBtn RB; /* Right Bumper */
+	JoystickBtn A;
+	JoystickBtn B;
+	JoystickBtn X;
+	JoystickBtn Y;
+	JoystickBtn up;
+	JoystickBtn down;
+	JoystickBtn left;
+	JoystickBtn right;
 }JoystickBtnSturct;
 
 /**
@@ -52,42 +102,42 @@ typedef struct
 	 * 
 	 * left : [1, -1] : right
 	 */
-	float lx;
+	JoystickAxis lx;
 
 	/**
 	 * @brief The value of the left stick when moving vertically
 	 * 
 	 * up : [1, -1] : down
 	 */
-	float ly;
+	JoystickAxis ly;
 
 	/**
 	 * @brief The value of the right stick when moving horizontally
 	 * 
 	 * left : [1, -1] : right
 	 */
-	float rx;
+	JoystickAxis rx;
 
 	/**
 	 * @brief The value of the right stick when moving vertically
 	 * 
 	 * up : [1, -1] : down
 	 */
-	float ry;
+	JoystickAxis ry;
 
 	/**
 	 * @brief The value of the left trigger when pressed
 	 * 
 	 * unpressed : [0, 1] : pressed
 	 */
-	float LT;
+	JoystickAxis LT;
 
 	/**
 	 * @brief The value of the right trigger when pressed
 	 * 
 	 * unpressed : [0, 1] : pressed
 	 */
-	float RT;
+	JoystickAxis RT;
 }JoystickAxesSturct;
 
 /**
@@ -119,32 +169,19 @@ public:
 	 * @param joyName Indicates the name of the joystick.
 	 * Used to distinguish between different joystick types.
 	 */
-  Joystick(std::string joyName):_joyName(joyName) {};
+  Joystick(std::string joyName):joyName_(joyName) {};
 
-	/**
-	 * @brief Get the Joystick Name object
-	 * 
-	 * @return std::string 
-	 */
-	std::string getJoyName() {return _joyName;}
+	const std::string& getJoyName() const { return joyName_; }
+  JoystickDataStruct &operator()() { return this->joyData_; };
+	JoystickBtnSturct& btn() { return this->joyData_.btn; }	
+	JoystickBtnSturct btn() const { return this->joyData_.btn; }	
+	JoystickAxesSturct& axes() { return this->joyData_.axes; }	
+	JoystickAxesSturct axes() const { return this->joyData_.axes; }	
 
-	/**
-	 * @brief Get the current joystick data
-	 * 
-	 * @return JoystickDataStruct& 
-	 */
-  JoystickDataStruct &getdata() {return _joyData;};
-
-	/**
-	 * @brief Get the last joystick data
-	 * 
-	 * @return JoystickDataStruct& 
-	 */
-  JoystickDataStruct &getdataPre() {return _joyDataPre;};
 
 protected:
-  std::string _joyName="";
-  JoystickDataStruct _joyData, _joyDataPre;
+  std::string joyName_="";
+  JoystickDataStruct joyData_;
 };
 
 } // namespace unitree_joy

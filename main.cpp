@@ -8,7 +8,6 @@ int main(int argc, char** argv){
     std::string controllerName = (argc > 1) ? argv[1] : "B1";
 #ifdef COMPILE_WITH_SIMULATION
     //Run joy_node first
-    controllerName = "F710";
     ros::init(argc, argv, "z1_joystick");
 #endif
 
