@@ -117,8 +117,8 @@ void ArmCtrl::_trajectory(int trajNum)
   switch (trajNum)
   {
   case 1://up
-    targetQ << 0, 1.5, -1, -0.54, 0, 0;
-    z1->MoveJ(jointQ2posture(targetQ), 0., 1.5);
+    // targetQ << 0, 1.5, -1, -0.54, 0, 0;
+    // z1->MoveJ(jointQ2posture(targetQ), 0., 1.5);
     break;
   case 2://down
     break;
@@ -129,9 +129,9 @@ void ArmCtrl::_trajectory(int trajNum)
   case 5://Y
     break;
   case 6://A
+    _trajManager->running = true;
     break;
   case 7://X
-    _trajManager->running = true;
     break;
   case 8://B
     break;

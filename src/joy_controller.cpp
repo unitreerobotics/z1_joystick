@@ -37,6 +37,7 @@ UNITREE_ARM::ArmFSMState JoyController::getSwitchState()
   }
   if(_joy->btn().RB.isJustPressed() && (!_lock)) 
   {
+    _lock = false;
     return UNITREE_ARM::ArmFSMState::CARTESIAN;
   }
   if(_joy->btn().back.isJustPressed() && (!_lock)) 
