@@ -1,0 +1,11 @@
+[Unit]
+Description=autostart unitree z1 joystick service
+After=z1_ctrl.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/unitree/z1/bin
+ExecStart=/home/unitree/z1/bin/z1_joystick
+
+[Install]
+WantedBy=default.target

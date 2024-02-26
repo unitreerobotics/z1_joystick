@@ -1,0 +1,11 @@
+[Unit]
+Description=autostart unitree z1 controller service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/unitree/z1/bin
+ExecStart=/home/unitree/z1/bin/z1_ctrl
+
+[Install]
+WantedBy=default.target
